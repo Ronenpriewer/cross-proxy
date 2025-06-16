@@ -1,31 +1,31 @@
 const express = require('express');
 const cors = require('cors');
 const fetch = require('node-fetch');
-require('dotenv').config();
-
 const app = express();
-app.use(cors());
 
-app.get('/', async (req, res) => {
+app.use(cors());
+app.use(express.json());
+
+app.post('/', async (req, res) => {
   const targetUrl = req.query.url;
+
   if (!targetUrl) {
-    return res.status(400).send('Missing url query param');
+    return res.status(400).json({ error: 'Missing ?url= parameter' });
   }
 
   try {
-    const response = await fetch(targetUrl);
-    const contentType = response.headers.get('content-type');
+    const response = await fetch(targetUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(req.body)
+    });
 
-    res.set('Content-Type', contentType);
-    const body = await response.text();
-    res.send(body);
-  } catch (error) {
-    console.error('Proxy error:', error);
-    res.status(500).send('Failed to fetch target URL');
+    const resultText = await response.text(); // Apps Script might return HTML
+    res.send(resultText);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
   }
 });
 
-const PORT = process.env.PORT || 10000;
-app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
-});
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => console.log(`Proxy running on port ${PORT}`));
