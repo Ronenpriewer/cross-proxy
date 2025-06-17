@@ -4,7 +4,7 @@ const fetch = require('node-fetch');
 require('dotenv').config();
 
 const app = express();
-app.use(cors()); // Allow all origins
+app.use(cors());
 app.use(express.json());
 
 const MAPBOX_TOKEN = process.env.MAPBOX_TOKEN;
@@ -27,7 +27,7 @@ async function getLatLng(address) {
   return { lat: '', lng: '' };
 }
 
-app.post('/', async (req, res) => {
+async function handleBlessingPost(req, res) {
   const targetUrl = req.query.url;
 
   if (!targetUrl) {
@@ -63,7 +63,11 @@ app.post('/', async (req, res) => {
     console.error('❌ Server Error:', err.message);
     res.status(500).json({ error: err.message });
   }
-});
+}
+
+// Accept both routes
+app.post('/', handleBlessingPost);
+app.post('/post', handleBlessingPost);
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`🚀 Proxy running on port ${PORT}`));
