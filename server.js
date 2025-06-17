@@ -4,7 +4,7 @@ const fetch = require('node-fetch');
 require('dotenv').config();
 
 const app = express();
-app.use(cors());
+app.use(cors()); // Allow all origins
 app.use(express.json());
 
 const MAPBOX_TOKEN = process.env.MAPBOX_TOKEN;
@@ -29,6 +29,7 @@ async function getLatLng(address) {
 
 app.post('/', async (req, res) => {
   const targetUrl = req.query.url;
+
   if (!targetUrl) {
     console.error('❌ Missing ?url= parameter');
     return res.status(400).json({ error: 'Missing ?url= parameter' });
@@ -38,6 +39,7 @@ app.post('/', async (req, res) => {
     const body = req.body;
     const addressParts = [body.address, body.city, body.country].filter(Boolean).join(', ');
     const coords = await getLatLng(addressParts);
+
     const payload = {
       ...body,
       latitude: coords.lat,
@@ -50,7 +52,7 @@ app.post('/', async (req, res) => {
     const response = await fetch(targetUrl, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
+      body: JSON.stringify(payload),
     });
 
     const resultText = await response.text();
